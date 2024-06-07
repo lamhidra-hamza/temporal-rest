@@ -53,6 +53,20 @@ function createWorkflowEndpoint(router: Router, client: WorkflowClient, name: st
     };
     client.start(fn, opts).then(() => res.json({ workflowId }));
   });
+
+  router.delete(`/workflow/${name}/:workflowId`, express.json(), async function(req: express.Request, res: express.Response) {
+    const workflowId = req.params.workflowId;
+    const reason = req.body.reason || 'No reason provided';
+    
+    try {
+      const handle = client.getHandle(workflowId);
+      await handle.terminate(reason);
+      res.json({ message: 'Workflow terminated successfully.', workflowId });
+    } catch (err) {
+      console.error('Error terminating workflow:', err);
+      res.status(500).json({ message: "Something Went Wrong" });
+    }
+  });
 }
 
 function createSignalEndpoint(router: Router, client: WorkflowClient, signal: SignalDefinition<any[]>) {
